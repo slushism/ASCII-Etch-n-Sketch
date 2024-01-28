@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ASCII Adventure Game</title>
+    <style>
+ html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: whitesmoke;
+    color: gray;
+}
+
+#game-area {
+    font-family: monospace;
+    white-space: pre;
+    font-size: 16px;
+    overflow: hidden; /* Prevent internal scrolling */
+}
+
+#key-display-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            border: 1px solid black;
+        }
+
+    </style>
+</head>
+<body><div id="message-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; color: black; padding: 20px;">USE THE ARROW KEYS TO MOVE</div>
+    <div id="game-container">
+        <pre id="game-area"></pre>
+    </div>
+    <div id="key-display-container">Key: None</div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const gameArea = document.getElementById('game-area');
+    const charWidth = 10; // Approximate width of a character in pixels
+    const charHeight = 18; // Approximate height of a character in pixels
+    let lastKeyPressed = '.'; // Variable to store the last non-arrow key pressed
+
+    function updateKeyDisplay(key) {
+                document.getElementById('key-display-container').textContent = `${key}`;
+            }
+
+    const worldSize = {
+        width: Math.floor(window.innerWidth / charWidth),
+        height: Math.floor(window.innerHeight / charHeight)
+    };
+
+    
+    let playerPosition = { x: Math.floor(worldSize.width / 2), y: Math.floor(worldSize.height / 2) };
+    const worldMap = generateWorldMap(worldSize);
+    const exploredMap = createExploredMap(worldSize);
+
+    function generateWorldMap(size) {
+        let map = [];
+        for (let y = 0; y < size.height; y++) {
+            let row = [];
+            for (let x = 0; x < size.width; x++) {
+                row.push(generateTerrainSymbol());
+            }
+            map.push(row);
+        }
+        return map;
+    }
+
+    function createExploredMap(size) {
+        let map = [];
+        for (let y = 0; y < size.height; y++) {
+            let row = [];
+            for (let x = 0; x < size.width; x++) {
+                row.push('.');
+            }
+            map.push(row);
+        }
+        return map;
+    }
+
+    function generateTerrainSymbol() {
+        const symbols = ['^', '!', '~', '#', '*', '.'];
+        const index = Math.floor(Math.random() * symbols.length);
+        return symbols[index];
+    }
+
+    function drawWorld() {
+        let display = '';
+        for (let y = 0; y < worldSize.height; y++) {
+            for (let x = 0; x < worldSize.width; x++) {
+                if (x === playerPosition.x && y === playerPosition.y) {
+                    display += '@';
+                } else {
+                    display += exploredMap[y][x];
+                }
+            }
+            display += '\n';
+        }
+        gameArea.textContent = display;
+    }
+
+    function handleKeyPress(event) {
+                if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                    // Update the last key pressed if it's not an arrow key
+                    lastKeyPressed = event.key.length === 1 ? event.key : lastKeyPressed;
+                    updateKeyDisplay(lastKeyPressed);
+                    return;
+                }
+
+                switch (event.key) {
+                    case 'ArrowUp':
+                        movePlayer(0, -1);
+                        break;
+                    case 'ArrowDown':
+                        movePlayer(0, 1);
+                        break;
+                    case 'ArrowLeft':
+                        movePlayer(-1, 0);
+                        break;
+                    case 'ArrowRight':
+                        movePlayer(1, 0);
+                        break;
+                }
+                drawWorld();
+            }
+            document.addEventListener('keydown', handleKeyPress);
+     
+
+    function movePlayer(dx, dy) {
+        const newX = Math.max(0, Math.min(playerPosition.x + dx, worldSize.width - 1));
+        const newY = Math.max(0, Math.min(playerPosition.y + dy, worldSize.height - 1));
+        
+        if (newX !== playerPosition.x || newY !== playerPosition.y) {
+                    exploredMap[playerPosition.y][playerPosition.x] = lastKeyPressed;
+                    playerPosition.x = newX;
+                    playerPosition.y = newY;
+                }
+            }
+
+    window.addEventListener('resize', () => {
+        worldSize.width = Math.floor(window.innerWidth / charWidth);
+        worldSize.height = Math.floor(window.innerHeight / charHeight);
+        playerPosition = { x: Math.floor(worldSize.width / 2), y: Math.floor(worldSize.height / 2) };
+        drawWorld();
+    });
+
+    document.addEventListener('keydown', handleKeyPress);
+    drawWorld();
+});
+
+    </script>
+
+<script>
+    window.onload = function() {
+        setTimeout(function() {
+            var messageContainer = document.getElementById('message-container');
+            messageContainer.style.transition = 'opacity 1s';
+            messageContainer.style.opacity = 0;
+        }, 5000);
+    };
+</script>
+
+
+</body>
+</html>
